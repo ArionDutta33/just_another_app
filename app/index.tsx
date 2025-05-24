@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { Stack } from 'expo-router';
+import { Link, Stack } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { FlatList, Image, Pressable, Text, View } from 'react-native';
@@ -43,10 +43,12 @@ const Home = () => {
             <Text className="font-medium text-[#838383]">Welcome,</Text>
             <Text className="text-lg font-bold text-[#7f4f24]">burakokmezz</Text>
           </View>
-          <Pressable className="flex-row items-center gap-2 rounded-full bg-[#7f4f24] px-4 py-2">
-            <Ionicons name="add" color={'white'} size={20} />
-            <Text className=" text-white">Add</Text>
-          </Pressable>
+          <Link asChild href={'/Create/CreateTransaction'}>
+            <Pressable className="flex-row items-center gap-2 rounded-full bg-[#7f4f24] px-4 py-2">
+              <Ionicons name="add" color={'white'} size={20} />
+              <Text className=" text-white">Add</Text>
+            </Pressable>
+          </Link>
           <View className="rounded-full bg-white p-2">
             <Ionicons name="log-out-outline" color={'black'} size={20} />
           </View>
