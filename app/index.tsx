@@ -3,9 +3,36 @@ import React from 'react';
 import { Stack } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { Image, Pressable, Text, View } from 'react-native';
+import { FlatList, Image, Pressable, Text, View } from 'react-native';
 import logo from '../assets/images/logo.png';
+import Transaction from '~/components/Transaction';
 const Home = () => {
+  const data = [
+    {
+      id: 1,
+      category: 'Other',
+      isExpense: true,
+      expense: '1200.00',
+      date: 'May 17, 2025',
+      expenseTitle: 'Rent',
+    },
+    {
+      id: 2,
+      category: 'Income',
+      isExpense: false,
+      expense: '2500.00',
+      date: 'May 17, 2025',
+      expenseTitle: 'Salary',
+    },
+    {
+      id: 3,
+      category: 'Food & Drinks',
+      isExpense: true,
+      expense: '75.00',
+      date: 'May 20, 2025',
+      expenseTitle: 'Groceries',
+    },
+  ];
   return (
     <>
       <Stack.Screen options={{ headerShown: false }} />
@@ -38,6 +65,24 @@ const Home = () => {
             </View>
           </View>
         </View>
+        <View className="mx-4">
+          <Text className="my-6 text-xl font-bold">Recent Transactions</Text>
+        </View>
+        <FlatList
+          keyExtractor={(item) => item.id.toString()}
+          data={data}
+          contentContainerClassName="  gap-4 mx-4"
+          renderItem={({ item }) => (
+            <Transaction
+              category={item.category}
+              expense={item.expense}
+              date={item.date}
+              expenseTitle={item.expenseTitle}
+              id={item.id}
+              isExpense={item.isExpense}
+            />
+          )}
+        />
       </SafeAreaView>
     </>
   );
