@@ -7,14 +7,68 @@ import {
   Platform,
   KeyboardAvoidingView,
   TouchableOpacity,
+  Alert,
+  Vibration,
 } from 'react-native';
-import React from 'react';
+import React, { useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Link, Stack, useNavigation } from 'expo-router';
+import { Link, Stack, useRouter } from 'expo-router';
 import authbg from '../../assets/images/authbg_1.png';
-
+import Toast from 'react-native-toast-message';
+import { useAuth } from '~/components/provider/Auth';
+import { supabase } from '~/utils/supabase';
 const Register = () => {
-  const navigation = useNavigation();
+  const navigation = useRouter();
+
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+  async function signUpWithEmail() {
+    try {
+      setLoading(true);
+
+      const {
+        data: { session },
+        error,
+      } = await supabase.auth.signUp({ email, password });
+
+      if (error) {
+        Toast.show({
+          text1: 'Error',
+          text2: error.message,
+          type: 'error',
+        });
+        return;
+      }
+
+      if (session) {
+        Vibration.vibrate(100);
+        Toast.show({
+          text1: 'Account created',
+          text2: 'Kindly Login!',
+          type: 'success',
+        });
+        navigation.replace('/(auth)/Login');
+      } else {
+        Toast.show({
+          text1: 'Unexpected',
+          text2: 'Signup succeeded, but no session returned.',
+          type: 'info',
+        });
+      }
+    } catch (e) {
+      Toast.show({
+        text1: 'Unexpected Error',
+        text2: 'Something went wrong',
+        type: 'error',
+      });
+      console.log('Signup error:', e);
+    } finally {
+      setLoading(false);
+    }
+  }
+
   return (
     <>
       <Stack.Screen options={{ headerShown: false }} />
@@ -29,9 +83,7 @@ const Register = () => {
             }}
             keyboardShouldPersistTaps="handled"
             showsVerticalScrollIndicator={false}>
-            {/* Main Content Container */}
             <View className="flex-1 items-center justify-center px-6 py-8">
-              {/* Logo/Image Section */}
               <View className="mb-8 w-full items-center">
                 <Image
                   resizeMode="contain"
@@ -40,7 +92,6 @@ const Register = () => {
                 />
               </View>
 
-              {/* Title Section */}
               <View className="mb-8 items-center">
                 <Text className="text-center text-4xl font-extrabold text-[#7f4f24]">
                   Create Account
@@ -50,13 +101,14 @@ const Register = () => {
                 </Text>
               </View>
 
-              {/* Form Section */}
               <View className="w-full items-center gap-2 ">
                 <TextInput
                   className="w-full max-w-[350px] rounded-xl border border-[#dda15e] bg-white/90 px-5 py-4 text-base shadow-sm"
                   placeholder="Enter your email"
                   placeholderTextColor="#7f4f24/60"
                   keyboardType="email-address"
+                  value={email}
+                  onChangeText={(value) => setEmail(value)}
                   autoCapitalize="none"
                   autoCorrect={false}
                 />
@@ -67,6 +119,8 @@ const Register = () => {
                   placeholderTextColor="#7f4f24/60"
                   secureTextEntry
                   autoCapitalize="none"
+                  value={password}
+                  onChangeText={(value) => setPassword(value)}
                   autoCorrect={false}
                 />
 
@@ -76,13 +130,17 @@ const Register = () => {
                   placeholderTextColor="#7f4f24/60"
                   secureTextEntry
                   autoCapitalize="none"
+                  value={confirmPassword}
+                  onChangeText={(value) => setConfirmPassword(value)}
                   autoCorrect={false}
                 />
               </View>
 
-              {/* Button Section */}
               <View className="mt-8 w-full items-center">
                 <TouchableOpacity
+                  onPress={async () => {
+                    signUpWithEmail();
+                  }}
                   className="w-full max-w-[350px] rounded-xl bg-[#7f4f24] px-6 py-4 shadow-lg"
                   activeOpacity={0.8}>
                   <Text className="text-center text-lg font-bold text-white">Create Account</Text>
