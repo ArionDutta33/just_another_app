@@ -126,7 +126,6 @@ const Login = () => {
               <View className="mt-8 w-full items-center">
                 <TouchableOpacity
                   onPress={async () => {
-                    console.log('sign in');
                     signInWithEmail();
                   }}
                   className="w-full max-w-[350px] rounded-xl bg-[#7f4f24] px-6 py-4 shadow-lg"

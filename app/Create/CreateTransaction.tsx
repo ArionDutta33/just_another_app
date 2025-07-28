@@ -38,8 +38,6 @@ const CreateTransaction = () => {
   };
   const addExpense = async () => {
     setLoading(true);
-    console.log('User ID:', typeof user?.id);
-    console.log('Auth UID:', (await supabase.auth.getUser()).data.user?.id);
 
     if (!user?.id) {
       Toast.show({
@@ -50,7 +48,7 @@ const CreateTransaction = () => {
       return;
     }
     try {
-      const { data, error } = await supabase
+      const { error } = await supabase
         .from('Expense')
         .insert([
           {
@@ -73,7 +71,10 @@ const CreateTransaction = () => {
 
         return;
       }
-
+      setAmount('');
+      setTitle('');
+      setSelectedCategory('');
+      setType('expense');
       Toast.show({
         text1: 'Success',
         text2: 'Expense added',
