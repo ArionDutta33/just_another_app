@@ -7,7 +7,8 @@ import logo from '../assets/images/logo.png';
 import Transaction from '~/components/Transaction';
 import { useAuth } from '~/components/provider/Auth';
 import { supabase } from '~/utils/supabase';
-
+import Swipeable from 'react-native-gesture-handler/ReanimatedSwipeable';
+import Toast from 'react-native-toast-message';
 export interface Expense {
   id: string;
   createdAt: string | Date;
@@ -51,7 +52,28 @@ const Home = () => {
   const [expenseItem, setExpenseItem] = useState<Expense[]>([]);
   const [income, setIncome] = useState(0);
   const [totalExpenses, setTotalExpenses] = useState(0);
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
+  const handleDelete = async (id: string) => {
+    const { count, error } = await supabase.from('Expense').delete().eq('id', id);
+    if (error) {
+      Toast.show({
+        text1: 'Error',
+        text2: error.message,
+        type: 'error',
+      });
+      return;
+    }
+    setExpenseItem((prev) => prev.filter((item) => item.id !== id));
+    Toast.show({ text1: 'Sucess', text2: 'Expense item deleted', type: 'success' });
+  };
+
+  const renderRightActions = (id: string) => (
+    <Pressable
+      onPress={() => handleDelete(id)}
+      className="items-center justify-center rounded-2xl bg-red-500 px-4">
+      <Text className="font-bold text-white">Delete</Text>
+    </Pressable>
+  );
 
   useEffect(() => {
     const getExpenses = async () => {
@@ -78,7 +100,7 @@ const Home = () => {
     };
 
     getExpenses();
-  }, []);
+  }, [expenseItem]);
 
   if (!isAuthenticated) {
     return <Redirect href={'/(auth)/Login'} />;
@@ -92,7 +114,7 @@ const Home = () => {
           <Image style={{ height: 100, width: 100 }} resizeMode="center" source={logo} />
           <View>
             <Text className="font-medium text-[#838383]">Welcome,</Text>
-            <Text className="text-lg font-bold text-[#7f4f24]">Test</Text>
+            <Text className="text-lg font-bold text-[#7f4f24]">{user?.email?.split('@')[0]}</Text>
           </View>
           <Link asChild href={'/Create/CreateTransaction'}>
             <Pressable
@@ -118,7 +140,7 @@ const Home = () => {
         <View className="mx-4 rounded-xl bg-white p-4 shadow-xl">
           <Text className="mb-2 text-gray-400">Total Balance</Text>
           <Text className="text-3xl font-bold text-[#6b3b11]">
-            ${(income - totalExpenses).toFixed(2)}
+            ${Math.max(0, income - totalExpenses).toFixed(2)}
           </Text>
 
           <View className="mt-6 flex-row items-center justify-between">
@@ -142,15 +164,17 @@ const Home = () => {
           data={expenseItem}
           contentContainerClassName="gap-4 mx-4 pb-20"
           renderItem={({ item }) => (
-            <Transaction
-              category={item.category}
-              amout={item.amout}
-              createdAt={new Date(item.createdAt)}
-              title={item.title}
-              id={item.id.toString()}
-              type={item.type}
-              icon={categoryMap[item.category]?.icon || categoryMap['other'].icon}
-            />
+            <Swipeable renderRightActions={() => renderRightActions(item.id)}>
+              <Transaction
+                category={item.category}
+                amout={item.amout}
+                createdAt={new Date(item.createdAt)}
+                title={item.title}
+                id={item.id.toString()}
+                type={item.type}
+                icon={categoryMap[item.category]?.icon || categoryMap['other'].icon}
+              />
+            </Swipeable>
           )}
         />
       </SafeAreaView>

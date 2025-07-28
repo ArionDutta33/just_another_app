@@ -1,4 +1,3 @@
-// Transaction.tsx
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import React, { JSX } from 'react';
 import { View, Text } from 'react-native';
