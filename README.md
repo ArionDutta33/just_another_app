@@ -27,19 +27,20 @@ Users can:
 ## 📸 Screenshots
 
 ### 🔐 Sign In Screen
-![Sign In](./assets/screenshots/Screenshot_20250728_122319.png)
+<img width="1344" height="2992" alt="Screenshot_20250728_122319" src="https://github.com/user-attachments/assets/1eb86e01-4618-4617-beac-da52c4c90d10" />
+
 
 ### 🆕 Sign Up Screen
-![Sign Up](./assets/screenshots/Screenshot_20250728_122346.png)
+ <img width="1344" height="2992" alt="Screenshot_20250728_122346" src="https://github.com/user-attachments/assets/fe145033-7fe5-482c-87f9-49e54945bf9b" />
 
 ### 📊 Dashboard (After Sign In)
-![Dashboard](./assets/screenshots/Screenshot_20250728_122430.png)
+ <img width="1344" height="2992" alt="Screenshot_20250728_122430" src="https://github.com/user-attachments/assets/80512803-aed6-4aa4-9ce3-000e8bddcb40" />
 
 ### 🗑️ Swipe to Delete
-![Delete](./assets/screenshots/Screenshot_20250728_122442.png)
+ <img width="1344" height="2992" alt="Screenshot_20250728_122442" src="https://github.com/user-attachments/assets/182cd161-c7a5-4996-b305-20ddfe1f3752" />
 
 ### ➕ New Transaction
-![New Transaction](./assets/screenshots/Screenshot_20250728_122455.png)
+ <img width="1344" height="2992" alt="Screenshot_20250728_122455" src="https://github.com/user-attachments/assets/a983fae3-5f02-4890-9599-9c994893285b" />
 
 ---
 
