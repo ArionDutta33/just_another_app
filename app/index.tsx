@@ -1,4 +1,4 @@
-import React, { JSX, useEffect, useState } from 'react';
+import React, { JSX, useCallback, useEffect, useState } from 'react';
 import { Link, Redirect, Stack } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { FontAwesome, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
@@ -9,14 +9,16 @@ import { useAuth } from '~/components/provider/Auth';
 import { supabase } from '~/utils/supabase';
 import Swipeable from 'react-native-gesture-handler/ReanimatedSwipeable';
 import Toast from 'react-native-toast-message';
+import NetInfo from '@react-native-community/netinfo';
 export interface Expense {
   id: string;
-  createdAt: string | Date;
+  created_at: string | Date;
   title: string;
   amout: string | number;
   category: string;
   type: 'expense' | 'income';
 }
+
 export const categoryMap: Record<string, { label: string; icon: JSX.Element }> = {
   food: {
     label: 'Food & Drinks',
@@ -48,13 +50,35 @@ export const categoryMap: Record<string, { label: string; icon: JSX.Element }> =
   },
 };
 
+const PAGE_SIZE = 10;
+
 const Home = () => {
   const [expenseItem, setExpenseItem] = useState<Expense[]>([]);
   const [income, setIncome] = useState(0);
   const [totalExpenses, setTotalExpenses] = useState(0);
+  const [loading, setLoading] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
+  const [page, setPage] = useState(0);
   const { isAuthenticated, user } = useAuth();
+  const [isConnected, setIsConnected] = useState(true);
+  useEffect(() => {
+    const unsubscribe = NetInfo.addEventListener((state) => {
+      setIsConnected(!!state?.isConnected);
+    });
+
+    return () => unsubscribe();
+  }, []);
+
   const handleDelete = async (id: string) => {
-    const { count, error } = await supabase.from('Expense').delete().eq('id', id);
+    if (!isConnected) {
+      Toast.show({
+        text1: 'Offline',
+        text2: 'You are offline! Come back later',
+        type: 'error',
+      });
+      return;
+    }
+    const { error } = await supabase.from('Expense').delete().eq('id', id);
     if (error) {
       Toast.show({
         text1: 'Error',
@@ -64,7 +88,7 @@ const Home = () => {
       return;
     }
     setExpenseItem((prev) => prev.filter((item) => item.id !== id));
-    Toast.show({ text1: 'Sucess', text2: 'Expense item deleted', type: 'success' });
+    Toast.show({ text1: 'Sucess', text2: ` Expense item deleted`, type: 'success' });
   };
 
   const renderRightActions = (id: string) => (
@@ -75,32 +99,68 @@ const Home = () => {
     </Pressable>
   );
 
-  useEffect(() => {
-    const getExpenses = async () => {
-      const { data, error } = await supabase.from('Expense').select('*');
+  const fetchExpenses = useCallback(
+    async (pageNumber: number) => {
+      if (!isConnected) {
+        Toast.show({
+          text1: 'Offline',
+          text2: 'You are offline! Come back later',
+          type: 'error',
+        });
+        return;
+      }
+
+      setLoading(true);
+      const from = pageNumber * PAGE_SIZE;
+      const to = from + PAGE_SIZE - 1;
+
+      const { data, error } = await supabase
+        .from('Expense')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .range(from, to);
+
+      setLoading(false);
 
       if (error) {
         console.error('Error fetching expenses:', error.message);
         return;
       }
 
-      const expenses = data || [];
-      setExpenseItem(expenses);
+      if (!data || data.length === 0) {
+        setHasMore(false);
+        return;
+      }
 
-      const totalIncome = expenses
-        .filter((item) => item.type === 'income')
-        .reduce((sum, item) => sum + Number(item.amout), 0);
+      setExpenseItem((prev) => [...prev, ...data]);
 
-      const totalExpense = expenses
-        .filter((item) => item.type === 'expense')
-        .reduce((sum, item) => sum + Number(item.amout), 0);
+      if (pageNumber === 0) {
+        const totalIncome = data
+          .filter((item) => item.type === 'income')
+          .reduce((sum, item) => sum + Number(item.amout), 0);
 
-      setIncome(totalIncome);
-      setTotalExpenses(totalExpense);
-    };
+        const totalExpense = data
+          .filter((item) => item.type === 'expense')
+          .reduce((sum, item) => sum + Number(item.amout), 0);
 
-    getExpenses();
-  }, [expenseItem]);
+        setIncome(totalIncome);
+        setTotalExpenses(totalExpense);
+      }
+    },
+    [isConnected]
+  );
+
+  const loadMoreExpenses = () => {
+    if (!loading && hasMore) {
+      const nextPage = page + 1;
+      setPage(nextPage);
+      fetchExpenses(nextPage);
+    }
+  };
+
+  useEffect(() => {
+    fetchExpenses(0);
+  }, [fetchExpenses]);
 
   if (!isAuthenticated) {
     return <Redirect href={'/(auth)/Login'} />;
@@ -118,7 +178,17 @@ const Home = () => {
           </View>
           <Link asChild href={'/Create/CreateTransaction'}>
             <Pressable
-              onPress={() => Vibration.vibrate(100)}
+              onPress={() => {
+                if (!isConnected) {
+                  Toast.show({
+                    text1: 'Offline',
+                    text2: 'You are offline! Come back later',
+                    type: 'error',
+                  });
+                  return;
+                }
+                Vibration.vibrate(100);
+              }}
               className="flex-row items-center gap-2 rounded-full bg-[#7f4f24] px-4 py-2">
               <Ionicons name="add" color={'white'} size={20} />
               <Text className="text-white">Add</Text>
@@ -140,17 +210,16 @@ const Home = () => {
         <View className="mx-4 rounded-xl bg-white p-4 shadow-xl">
           <Text className="mb-2 text-gray-400">Total Balance</Text>
           <Text className="text-3xl font-bold text-[#6b3b11]">
-            ${Math.max(0, income - totalExpenses).toFixed(2)}
+            ₹{Math.max(0, income - totalExpenses).toFixed(2)}
           </Text>
-
           <View className="mt-6 flex-row items-center justify-between">
             <View>
               <Text className="text-center text-gray-400">Income</Text>
-              <Text className="text-lg font-bold text-green-500">+${income.toFixed(2)}</Text>
+              <Text className="text-lg font-bold text-green-500">+₹{income.toFixed(2)}</Text>
             </View>
             <View className="border-l border-[#cac8c8] px-5">
               <Text className="text-center text-gray-400">Expenses</Text>
-              <Text className="text-lg font-bold text-red-500">-${totalExpenses.toFixed(2)}</Text>
+              <Text className="text-lg font-bold text-red-500">-₹{totalExpenses.toFixed(2)}</Text>
             </View>
           </View>
         </View>
@@ -162,13 +231,20 @@ const Home = () => {
         <FlatList
           keyExtractor={(item) => item.id.toString()}
           data={expenseItem}
+          refreshing={loading}
+          onRefresh={() => {
+            setExpenseItem([]);
+            setPage(0);
+            setHasMore(true);
+            fetchExpenses(0);
+          }}
           contentContainerClassName="gap-4 mx-4 pb-20"
           renderItem={({ item }) => (
             <Swipeable renderRightActions={() => renderRightActions(item.id)}>
               <Transaction
                 category={item.category}
                 amout={item.amout}
-                createdAt={new Date(item.createdAt)}
+                created_at={new Date(item.created_at)}
                 title={item.title}
                 id={item.id.toString()}
                 type={item.type}
@@ -176,6 +252,15 @@ const Home = () => {
               />
             </Swipeable>
           )}
+          onEndReached={loadMoreExpenses}
+          onEndReachedThreshold={0.5}
+          ListFooterComponent={
+            loading ? (
+              <Text className="py-4 text-center text-gray-500">Loading...</Text>
+            ) : !hasMore ? (
+              <Text className="py-4 text-center text-gray-500">No more items</Text>
+            ) : null
+          }
         />
       </SafeAreaView>
     </>

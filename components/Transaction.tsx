@@ -9,7 +9,7 @@ const Transaction: React.FC<TransactionProps> = ({
   title,
   category,
   amout,
-  createdAt,
+  created_at,
   type,
   icon,
 }) => {
@@ -25,10 +25,10 @@ const Transaction: React.FC<TransactionProps> = ({
       <View className="ml-auto border-r border-[#b6b6b6] px-4">
         <Text
           className={`${type === 'expense' ? 'text-red-500' : 'text-green-500'} text-lg font-bold`}>
-          {type === 'expense' ? '-' : '+'}${Number(amout).toFixed(2)}
+          {type === 'expense' ? '-' : '+'}₹{Number(amout).toFixed(2)}
         </Text>
         <Text className="ml-auto text-xs text-[#cccccc]">
-          {new Date(createdAt).toLocaleString()}
+          {new Date(created_at).toLocaleString()}
         </Text>
       </View>
 

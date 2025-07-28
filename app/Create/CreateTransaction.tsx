@@ -126,31 +126,33 @@ const CreateTransaction = () => {
             <View className="mb-4 flex-row justify-center gap-4">
               <Pressable
                 onPress={() => setType('expense')}
-                className={`flex-row items-center gap-2 rounded-full px-10 py-4 ${
+                className={`${
                   type === 'expense' ? 'bg-[#7f4f24]' : 'border border-[#c28d09]'
-                }`}>
+                } flex-row items-center gap-2 rounded-full px-10
+                py-4`}>
                 <View className="rounded-full bg-red-500 p-1">
                   <Ionicons name="arrow-down" color={'white'} size={12} />
                 </View>
-                <Text className={`font-bold ${type === 'expense' ? 'text-white' : ''}`}>
+                <Text className={`${type === 'expense' ? 'text-white' : ''} font-bold`}>
                   Expense
                 </Text>
               </Pressable>
 
               <Pressable
                 onPress={() => setType('income')}
-                className={`flex-row items-center gap-2 rounded-full px-10 py-4 ${
+                className={`${
                   type === 'income' ? 'bg-[#7f4f24]' : 'border border-[#c28d09]'
-                }`}>
+                } flex-row items-center gap-2 rounded-full px-10
+                py-4`}>
                 <View className="rounded-full bg-green-500 p-1">
                   <Ionicons name="arrow-up" color="white" size={12} />
                 </View>
-                <Text className={`font-bold ${type === 'income' ? 'text-white' : ''}`}>Income</Text>
+                <Text className={`${type === 'income' ? 'text-white' : ''} font-bold`}>Income</Text>
               </Pressable>
             </View>
 
             <View className="my-4 flex-row items-center border-b border-[#e2e2e2] px-4">
-              <Text className="text-4xl font-bold">$</Text>
+              <Text className="text-4xl font-bold">₹</Text>
               <TextInput
                 className="flex-1 text-4xl font-bold"
                 placeholder="0.00"
@@ -184,9 +186,9 @@ const CreateTransaction = () => {
                   <Pressable
                     key={cat.key}
                     onPress={() => handleSelectCategory(cat.key)}
-                    className={`flex-row items-center gap-2 rounded-full border px-6 py-1 ${
-                      isSelected ? 'bg-[#7f4f24]' : 'border-[#a3a1a1]'
-                    }`}>
+                    className={`${isSelected ? 'bg-[#7f4f24]' : 'border-[#a3a1a1]'} flex-row
+                      items-center gap-2 rounded-full border px-6
+                    py-1`}>
                     {React.cloneElement(cat.icon, {
                       color: isSelected ? 'white' : 'black',
                     })}
